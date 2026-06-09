@@ -38,7 +38,7 @@ This schema configuration demonstrates how the triage gateway dynamically enforc
 
 ```json
 {
-  "$schema": "[https://json-schema.org/draft/2020-12/schema](https://json-schema.org/draft/2020-12/schema)",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "AIAgentTriageBlueprint",
   "type": "object",
   "properties": {
