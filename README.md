@@ -148,3 +148,14 @@ This schema configuration demonstrates how the triage gateway dynamically enforc
 2. **Conditional Escalation Safeguards (Rule A):** If the LLM sets `urgency_score` to 5, the schema automatically mandates an `escalation_target` array to prevent critical incidents from stalling without team ownership.
 3. **SLA Protection Bounds (Rule B):** If the LLM identifies a customer status as `frustrated`, the schema forces `priority_handling` to evaluate to a literal `true`, eliminating human/AI oversight on high-visibility complaints.
 4. **Surface Area Reduction:** Enforces `additionalProperties: false` at every tier, immediately rejecting payloads containing unapproved or hallucinated model components.
+
+## 🛡️ Validation & Verification Matrix
+
+The validation gateway acts as a hard boundary, ensuring data pipelines execute with verified system payloads:
+
+| Payload Scenario | Structural State | System Result | Reason |
+| :--- | :--- | :--- | :--- |
+| **Valid Critical Ingestion** | `urgency_score: 5`, `sentiment: "frustrated"`, `priority_handling: true`, `escalation_target: ["devops", "security"]`, `ticket_id: "INC-2026-8841"` | **PASS (200 OK)** | Fully complies with root validation, regular expression blocks, and both conditional rules simultaneously. |
+| **Malformed Identifier** | `ticket_id: "INC-2026-841"` | **FAIL (400 Bad Request)** | Fails compliance pattern check; regular expressions require exactly four trailing digits. |
+| **Critical Escalation Failure** | `urgency_score: 5`, `escalation_target` omitted | **FAIL (400 Bad Request)** | Blocked by conditional Rule A; high-priority tickets must include routing targets. |
+| **Hallucinated Property** | Contains root-level `"recommended_action"` key | **FAIL (400 Bad Request)** | Caught by strict `additionalProperties: false` layout restrictions. |
