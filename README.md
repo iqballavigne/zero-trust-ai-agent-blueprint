@@ -142,8 +142,8 @@ This schema configuration demonstrates how the triage gateway dynamically enforc
     }
   }
 }
-
-```### Key Structural Mechanics:
+```
+### Key Structural Mechanics:
 1. **Strict Temporal Patterns:** Validates `ticket_id` structures strictly against an enterprise-wide `^INC-2026-[0-9]{4}$` regular expression layout, ensuring chronological indexing constraints are maintained.
 2. **Conditional Escalation Safeguards (Rule A):** If the LLM sets `urgency_score` to 5, the schema automatically mandates an `escalation_target` array to prevent critical incidents from stalling without team ownership.
 3. **SLA Protection Bounds (Rule B):** If the LLM identifies a customer status as `frustrated`, the schema forces `priority_handling` to evaluate to a literal `true`, eliminating human/AI oversight on high-visibility complaints.
