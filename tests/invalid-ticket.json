@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "agent_id": "AGT-1024",
+    "timestamp": "2026-06-01T04:54:00Z",
+    "schema_version": "1.0.0"
+  },
+  "ticket_details": {
+    "ticket_id": "INC-2026-841",
+    "raw_summary": "Slight lag noticed on internal testing server. Not affecting public users."
+  },
+  "analysis": {
+    "sentiment": "neutral",
+    "urgency_score": 5,
+    "confidence_score": 0.85
+  },
+  "recommended_action": "Restart the staging instance during off-hours."
+}
