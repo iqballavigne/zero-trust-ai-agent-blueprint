@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "agent_id": "AGT-1024",
+    "timestamp": "2026-06-10T06:00:00Z",
+    "schema_version": "1.0.0"
+  },
+  "ticket_details": {
+    "ticket_id": "INC-2026-8841",
+    "raw_summary": "Database connection pool is totally exhausted. Core production systems are down and our checkout gateway is throwing 500 errors. Customers are panicking and flooding our support lines. Need immediate help!"
+  },
+  "analysis": {
+    "sentiment": "frustrated",
+    "urgency_score": 5,
+    "confidence_score": 0.98,
+    "priority_handling": true,
+    "escalation_target": ["devops", "security"]
+  }
+}
