@@ -1,6 +1,9 @@
 # AI Agent Triage Blueprint: Automated Incident Ticket Validation
 
 An enterprise-grade data governance framework designed to validate structured JSON outputs from AI Agents parsing incoming corporate incident tickets. This architecture utilizes a strict schema validation layer to eliminate non-deterministic LLM behaviors, enforcing conditional routing logic and ticket compliance before payloads hit downstream orchestration systems.
+
+---
+
 ## 📐 System Data Flow
 
 ```
@@ -27,11 +30,15 @@ An enterprise-grade data governance framework designed to validate structured JS
      ▼                       ▼
 [ PagerDuty / Jira API ] [ Auto-Retry / Prompt Correction ]
 ```
+---
+
 ## 🛠️ Architectural Challenges & Design Choices
 
 * **The Challenge:** LLMs processing unstructured support tickets frequently output unpredictable properties (such as hallucinating a `recommended_action` key), fail to apply consistent urgency scores, or omit critical routing escalations when handling highly frustrated customers.
 * **The Naive Approach:** Writing complex application-layer parsing logic to cross-reference customer sentiment against priority fields. This introduces technical debt, slows down execution speeds, and risks breaking down when fields are omitted entirely.
 * **The Architectural Solution:** Shifting state-dependent constraints directly into the validation layer using JSON Schema `allOf` and conditional `if/then` statements. The schema dynamically alters field requirements based on data properties at runtime, ensuring complete system safety.
+
+---
 
 ## 💾 Code Highlight: Multi-Rule Conditional Governance
 
@@ -143,11 +150,15 @@ This schema configuration demonstrates how the triage gateway dynamically enforc
   }
 }
 ```
+---
+
 ### Key Structural Mechanics:
 1. **Strict Temporal Patterns:** Validates `ticket_id` structures strictly against an enterprise-wide `^INC-2026-[0-9]{4}$` regular expression layout, ensuring chronological indexing constraints are maintained.
 2. **Conditional Escalation Safeguards (Rule A):** If the LLM sets `urgency_score` to 5, the schema automatically mandates an `escalation_target` array to prevent critical incidents from stalling without team ownership.
 3. **SLA Protection Bounds (Rule B):** If the LLM identifies a customer status as `frustrated`, the schema forces `priority_handling` to evaluate to a literal `true`, eliminating human/AI oversight on high-visibility complaints.
 4. **Surface Area Reduction:** Enforces `additionalProperties: false` at every tier, immediately rejecting payloads containing unapproved or hallucinated model components.
+
+---
 
 ## 🛡️ Validation & Verification Matrix
 
