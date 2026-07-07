@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "AIAgentTriageBlueprint",
   "description": "Validates structured output from AI Agent parsing incoming incident tickets.",
   "type": "object",
@@ -74,7 +74,6 @@
       },
       "allOf": [
         {
-          "dependentComment": "Rule A: If urgency_score is 5, escalation_target is required.",
           "if": {
             "properties": {
               "urgency_score": { "const": 5 }
@@ -85,7 +84,6 @@
           }
         },
         {
-          "dependentComment": "Rule B: If sentiment is frustrated, priority_handling must be explicitly true.",
           "if": {
             "properties": {
               "sentiment": { "const": "frustrated" }
