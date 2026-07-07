@@ -161,23 +161,24 @@ The triage gateway enforces deterministic data constraints by evaluating the age
   }
 }
 ```
+
+### Key Structural Mechanics
+
+* **Strict Temporal & Indexing Patterns:** Validates the `ticket_id` property against an enterprise-wide regular expression layout (`^INC-2026-[0-9]{4}$`). This ensures rigid chronological sorting and cryptographic indexing constraints are maintained at the database edge.
+* **Conditional Escalation Safeguards (Rule A):** Instantly hooks into the agent's calculations. If the model sets the `urgency_score` integer to `5`, the schema overrides optional constraints and mandates an `escalation_target` array to prevent high-severity incidents from stalling without engineering ownership.
+* **SLA Protection Bounds (Rule B):** Evaluates the parsed data stream for volatile inputs. If the model identifies customer sentiment as `"frustrated"`, the validation engine forces the `priority_handling` flag to resolve to a literal `true` boolean, eliminating human or model oversight on high-visibility complaints.
+* **Zero-Trust Surface Area Reduction:** Enforces an absolute `"additionalProperties": false` restriction at every structural tier. This immediately quarantines and rejects payloads containing unmapped keys, serving as a primary defense against LLM prompt leakages and structural hallucinations.
+
 ---
 
-### Key Structural Mechanics:
-1. **Strict Temporal Patterns:** Validates `ticket_id` structures strictly against an enterprise-wide `^INC-2026-[0-9]{4}$` regular expression layout, ensuring chronological indexing constraints are maintained.
-2. **Conditional Escalation Safeguards (Rule A):** If the LLM sets `urgency_score` to 5, the schema automatically mandates an `escalation_target` array to prevent critical incidents from stalling without team ownership.
-3. **SLA Protection Bounds (Rule B):** If the LLM identifies a customer status as `frustrated`, the schema forces `priority_handling` to evaluate to a literal `true`, eliminating human/AI oversight on high-visibility complaints.
-4. **Surface Area Reduction:** Enforces `additionalProperties: false` at every tier, immediately rejecting payloads containing unapproved or hallucinated model components.
+## 📊 System Validation Matrix
 
----
+The triage engine maps incoming structured AI payloads against specific logic gates to guarantee that automated incident classification and escalation tasks run without data corruption.
 
-## 🛡️ Validation & Verification Matrix
-
-The validation gateway acts as a hard boundary, ensuring data pipelines execute with verified system payloads:
-
-| Payload Scenario | Structural State | System Result | Reason |
-| :--- | :--- | :--- | :--- |
-| **Valid Critical Ingestion** | `urgency_score: 5`, `sentiment: "frustrated"`, `priority_handling: true`, `escalation_target: ["devops", "security"]`, `ticket_id: "INC-2026-8841"` | **PASS (200 OK)** | Fully complies with root validation, regular expression blocks, and both conditional rules simultaneously. |
-| **Malformed Identifier** | `ticket_id: "INC-2026-841"` | **FAIL (400 Bad Request)** | Fails compliance pattern check; regular expressions require exactly four trailing digits. |
-| **Critical Escalation Failure** | `urgency_score: 5`, `escalation_target` omitted | **FAIL (400 Bad Request)** | Blocked by conditional Rule A; high-priority tickets must include routing targets. |
-| **Hallucinated Property** | Contains root-level `"recommended_action"` key | **FAIL (400 Bad Request)** | Caught by strict `additionalProperties: false` layout restrictions. |
+| Test File | Target Coordinate | Input Payload State | Expected Outcome | Active Constraint Evaluated |
+| :--- | :--- | :--- | :--- | :--- |
+| `valid-ticket.json` | `metadata.agent_id` | `"AGT-1024"` | **🟢 PASS** | Evaluated successfully against regex string pattern (`^AGT-[0-9]{4}$`). |
+| `valid-ticket.json` | `analysis` | `sentiment: "frustrated"` + `urgency_score: 5` | **🟢 PASS** | Satisfies both conditional `if/then` constraints simultaneously by supplying all required sub-keys. |
+| `invalid-ticket.json` | `ticket_details.ticket_id` | `"INC-2026-841"` | **🔴 FAIL** | Pattern matching failure. String missing required 4-digit serial suffix sequence. |
+| `invalid-ticket.json` | `analysis` | `urgency_score: 5` with missing `escalation_target` | **🔴 FAIL** | Triggered conditional block breach (`if` matches urgency but `then` condition fails dependency check). |
+| `invalid-ticket.json` | Root Coordinate | Injects unmapped `"recommended_action"` key | **🔴 FAIL** | Prompt leakage/hallucination defense. Key rejected by absolute root-level `"additionalProperties": false`. |
