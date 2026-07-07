@@ -1,12 +1,14 @@
-# AI Agent Triage Blueprint: Automated Incident Ticket Validation
+# 🛡️ AI Agent Triage Blueprint: Automated Incident Ticket Validation
 
 An enterprise-grade data governance framework designed to validate structured JSON outputs from AI Agents parsing incoming corporate incident tickets. This architecture utilizes a strict schema validation layer to eliminate non-deterministic LLM behaviors, enforcing conditional routing logic and ticket compliance before payloads hit downstream orchestration systems.
 
 ---
 
-## 📐 System Data Flow
+## 📐 Project Overview & Core Architecture
 
-```
+The core runtime gateway converts unpredictable, open-ended LLM text parsing into deterministic, structurally sound payloads. This ensures that automated incident classification, alerting systems, and SLA calculations operate without risk of data corruption or prompt injection side effects.
+
+```text
    [ Raw Customer Ticket ] 
               │
               ▼
@@ -30,23 +32,34 @@ An enterprise-grade data governance framework designed to validate structured JS
      ▼                       ▼
 [ PagerDuty / Jira API ] [ Auto-Retry / Prompt Correction ]
 ```
+
 ---
 
-## 🛠️ Architectural Challenges & Design Choices
+## 🧠 Core Engineering Challenges & Architectural Solutions
 
-* **The Challenge:** LLMs processing unstructured support tickets frequently output unpredictable properties (such as hallucinating a `recommended_action` key), fail to apply consistent urgency scores, or omit critical routing escalations when handling highly frustrated customers.
-* **The Naive Approach:** Writing complex application-layer parsing logic to cross-reference customer sentiment against priority fields. This introduces technical debt, slows down execution speeds, and risks breaking down when fields are omitted entirely.
-* **The Architectural Solution:** Shifting state-dependent constraints directly into the validation layer using JSON Schema `allOf` and conditional `if/then` statements. The schema dynamically alters field requirements based on data properties at runtime, ensuring complete system safety.
+This blueprint provides elegant, deterministic answers to three classic structural problems found in unstructured-to-structured AI data pipelines:
+
+### 1. The Hallucinating LLM Dilemma
+* **The Problem:** LLMs processing unstructured text frequently hallucinate unmapped properties (such as injecting an unexpected `recommended_action` key) or output malformed fields that downstream databases cannot parse.
+* **The Solution:** Implemented an uncompromising root-level and sub-object `"additionalProperties": false` constraint strategy. This turns the validation layer into a zero-trust sandbox; any unmapped key returned by an erratic model is immediately blocked at the gateway, forcing an explicit structural format.
+
+### 2. State-Dependent Urgency Escalation
+* **The Problem:** Enterprise tickets flagged with maximum severity require precise destination routing arrays (e.g., `devops`, `security`). Relying on the LLM to remember to include these arrays inside its generated string is unreliable, resulting in unrouted critical system failures.
+* **The Solution:** Utilized sequential `if/then` conditional validation logic gates nested inside an object-level `allOf` compiler array. If the model computes an `urgency_score` literal of `5`, the validation engine dynamically overrides standard requirements and mandates an explicit, non-empty `escalation_target` string array.
+
+### 3. Sentiment-Driven Priority Enforcement
+* **The Problem:** Frustrated customers require immediate systemic priority overrides. Writing brittle application-level logic to post-process text sentiment and retroactively flip priority flags introduces unnecessary compute latency and tight architectural coupling.
+* **The Solution:** Enforced an inline semantic guardrail. When the schema identifies a customer sentiment state of `"frustrated"`, it evaluates an active constraint requiring the immediate presence of a `priority_handling` flag, while simultaneously restricting its payload value strictly to a `const: true` boolean literal.
 
 ---
 
 ## 💾 Code Highlight: Multi-Rule Conditional Governance
 
-This schema configuration demonstrates how the triage gateway dynamically enforces downstream routing parameters based on real-time agent evaluations using an immutable logical structure:
+The triage gateway enforces deterministic data constraints by evaluating the agent's structural JSON output against immutable logical rules at runtime. Rather than relying on post-parsing application scripts, the schema evaluates co-dependent fields instantly using a strict validation block.
 
-```json
+```
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "AIAgentTriageBlueprint",
   "description": "Validates structured output from AI Agent parsing incoming incident tickets.",
   "type": "object",
@@ -121,7 +134,6 @@ This schema configuration demonstrates how the triage gateway dynamically enforc
       },
       "allOf": [
         {
-          "dependentComment": "Rule A: If urgency_score is 5, escalation_target is required.",
           "if": {
             "properties": {
               "urgency_score": { "const": 5 }
@@ -132,11 +144,10 @@ This schema configuration demonstrates how the triage gateway dynamically enforc
           }
         },
         {
-          "dependentComment": "Rule B: If sentiment is frustrated, priority_handling must be explicitly true.",
           "if": {
             "properties": {
               "sentiment": { "const": "frustrated" }
-                }
+            }
           },
           "then": {
             "properties": {
