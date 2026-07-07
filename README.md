@@ -177,8 +177,8 @@ The triage engine maps incoming structured AI payloads against specific logic ga
 
 | Test File | Target Coordinate | Input Payload State | Expected Outcome | Active Constraint Evaluated |
 | :--- | :--- | :--- | :--- | :--- |
-| `valid-ticket.json` | `metadata.agent_id` | `"AGT-1024"` | **🟢 PASS** | Evaluated successfully against regex string pattern (`^AGT-[0-9]{4}$`). |
+| `valid-ticket.json` | `metadata.agent_id` | `"AGT-1024"` | **🟢 PASS** | Matches regex sequence string template (`^AGT-[0-9]{4}$`). |
 | `valid-ticket.json` | `analysis` | `sentiment: "frustrated"` + `urgency_score: 5` | **🟢 PASS** | Satisfies both conditional `if/then` constraints simultaneously by supplying all required sub-keys. |
-| `invalid-ticket.json` | `ticket_details.ticket_id` | `"INC-2026-841"` | **🔴 FAIL** | Pattern matching failure. String missing required 4-digit serial suffix sequence. |
-| `invalid-ticket.json` | `analysis` | `urgency_score: 5` with missing `escalation_target` | **🔴 FAIL** | Triggered conditional block breach (`if` matches urgency but `then` condition fails dependency check). |
-| `invalid-ticket.json` | Root Coordinate | Injects unmapped `"recommended_action"` key | **🔴 FAIL** | Prompt leakage/hallucination defense. Key rejected by absolute root-level `"additionalProperties": false`. |
+| `invalid-ticket.json` | `analysis` | `urgency_score: 5` with missing `escalation_target` | **🔴 FAIL** | **Conditional Boundary Breach:** Triggered `if` statement for max urgency but failed the `then` constraint by omitting the routing array. |
+| `invalid-ticket.json` | Root Coordinate | Injects unmapped `"recommended_action"` key | **🔴 FAIL** | **Schema Surface Area Breach:** AI hallucination blocked cleanly at the boundary gate by the strict `"additionalProperties": false` constraint. |
+---
