@@ -1,0 +1,91 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix ai:       <http://api.sec-ops.internal/ontology/agent#> .
+@prefix ticket:   <http://api.sec-ops.internal/ontology/ticket#> .
+@prefix routing:  <http://api.sec-ops.internal/ontology/routing#> .
+@prefix inst:     <http://api.sec-ops.internal/instances#> .
+
+### 1. TBOX: ONTOLOGICAL FRAMEWORK (The Classes)
+ai:TriageAgent rdf:type rdfs:Class ;
+    rdfs:label "AI Operational Agent" ;
+    rdfs:comment "An active LLM parsing engine validated to categorize inbound incident tickets." .
+
+ticket:IncidentTicket rdf:type rdfs:Class ;
+    rdfs:label "Corporate Incident Ticket" .
+
+ticket:AgentAnalysis rdf:type rdfs:Class ;
+    rdfs:label "Agent Cognitive Analytics Block" .
+
+routing:EscalationTarget rdf:type rdfs:Class ;
+    rdfs:label "Downstream Engineering Department" .
+
+### 2. TBOX: RELATIONSHIPS & BOUNDARIES (The Properties)
+# --- Object Properties (Entity to Entity links) ---
+ai:processedBy rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range ai:TriageAgent .
+
+ticket:hasAnalysis rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range ticket:AgentAnalysis .
+
+ticket:assignedTo rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range routing:EscalationTarget .
+
+# --- Datatype Properties (Entity to Literal Value links) ---
+ai:agentId rdf:type rdf:Property ;
+    rdfs:domain ai:TriageAgent ;
+    rdfs:range xsd:string .
+
+ticket:ticketId rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range xsd:string .
+
+ticket:rawSummary rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range xsd:string .
+
+ticket:sentiment rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:string .
+
+ticket:urgencyScore rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:integer .
+
+ticket:confidenceScore rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:float .
+
+ticket:priorityHandling rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:boolean .
+
+### 3. ABOX: LIVE INSTANCE DATA (Synchronized from valid-ticket.json)
+# Agent Instance Definition
+inst:Agent_1024 rdf:type ai:TriageAgent ;
+    ai:agentId "AGT-1024"^^xsd:string .
+
+# Incident Ticket State Mapping
+inst:Ticket_INC-2026-8841 rdf:type ticket:IncidentTicket ;
+    ticket:ticketId "INC-2026-8841"^^xsd:string ;
+    ai:processedBy inst:Agent_1024 ;
+    ticket:rawSummary "Database connection pool is totally exhausted. Core production systems are down..."^^xsd:string ;
+    ticket:hasAnalysis inst:Analysis_INC-2026-8841 ;
+    ticket:assignedTo inst:Dept_Devops , inst:Dept_Security .
+
+# Cognitive Analysis Layer Mapping (Reflecting Schema Guardrail Outcomes)
+inst:Analysis_INC-2026-8841 rdf:type ticket:AgentAnalysis ;
+    ticket:sentiment "frustrated"^^xsd:string ;
+    ticket:urgencyScore "5"^^xsd:integer ;
+    ticket:confidenceScore "0.98"^^xsd:float ;
+    ticket:priorityHandling "true"^^xsd:boolean .
+
+# Escalation Infrastructure Target Definitions
+inst:Dept_Devops rdf:type routing:EscalationTarget ;
+    rdfs:label "DevOps Infrastructure Team" .
+
+inst:Dept_Security rdf:type routing:EscalationTarget ;
+    rdfs:label "Information Security Incident Response" .
