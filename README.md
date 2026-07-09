@@ -181,4 +181,115 @@ The triage engine maps incoming structured AI payloads against specific logic ga
 | `valid-ticket.json` | `analysis` | `sentiment: "frustrated"` + `urgency_score: 5` | **🟢 PASS** | Satisfies both conditional `if/then` constraints simultaneously by supplying all required sub-keys. |
 | `invalid-ticket.json` | `analysis` | `urgency_score: 5` with missing `escalation_target` | **🔴 FAIL** | **Conditional Boundary Breach:** Triggered `if` statement for max urgency but failed the `then` constraint by omitting the routing array. |
 | `invalid-ticket.json` | Root Coordinate | Injects unmapped `"recommended_action"` key | **🔴 FAIL** | **Schema Surface Area Breach:** AI hallucination blocked cleanly at the boundary gate by the strict `"additionalProperties": false` constraint. |
+
+---
+## 🌐 Semantic Graph Architecture
+
+While the JSON Schema gateway handles structural enforcement at the ingestion boundary, the triage system streams validated incident states into a centralized semantic knowledge graph. This architecture transforms isolated support tickets into interlinked corporate intelligence entities, allowing cross-departmental operations teams to analyze macro-level system health and agent performance using graph-based semantic queries.
+
+### 🧠 Ontological Architecture (TBox vs. ABox)
+
+The triage ontology separates operational metadata from dynamic incident state declarations:
+* **The TBox (Terminology Box):** Structures the organizational schema vocabulary. It defines the strict boundaries of classes (`ai:TriageAgent`, `ticket:IncidentTicket`) and maps structural constraints regarding how predicates connect data entities (e.g., establishing that a classification rating can only originate from an active agent resource).
+* **The ABox (Assertion Box):** Asserts real-world transaction statements. It populates the graph with active data records synchronized directly from `valid-ticket.json`, establishing true graph relations between unique agent IDs, system logs, and security-escalation endpoints.
+
+### 🎯 Graph Structural Equivalents to Schema Constraints
+
+* **Conditional Logic Harmonization:** The conditional `if/then` structural requirements checked by the JSON Schema are represented semantically as explicit entity classifications in the graph database. When an incident manifests high urgency, it links directly to named infrastructure instances (`routing:devops`), ensuring graph trace-analytics match edge routing constraints.
+* **Property Hallucination Defense:** By strictly defining property domains and ranges inside the semantic vocabulary block, the knowledge graph acts as an advanced secondary defense shield. Any unmapped or hallucinated key output by an AI model that slips past the edge gateway will violate the core graph topology, causing the database to reject the transaction graph update.
+
+### 🕸️ The Semantic Triage Topology (`triage-ontology.ttl`)
+```
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix ai:       <http://api.sec-ops.internal/ontology/agent#> .
+@prefix ticket:   <http://api.sec-ops.internal/ontology/ticket#> .
+@prefix routing:  <http://api.sec-ops.internal/ontology/routing#> .
+@prefix inst:     <http://api.sec-ops.internal/instances#> .
+
+### 1. TBOX: ONTOLOGICAL FRAMEWORK (The Classes)
+ai:TriageAgent rdf:type rdfs:Class ;
+    rdfs:label "AI Operational Agent" ;
+    rdfs:comment "An active LLM parsing engine validated to categorize inbound incident tickets." .
+
+ticket:IncidentTicket rdf:type rdfs:Class ;
+    rdfs:label "Corporate Incident Ticket" .
+
+ticket:AgentAnalysis rdf:type rdfs:Class ;
+    rdfs:label "Agent Cognitive Analytics Block" .
+
+routing:EscalationTarget rdf:type rdfs:Class ;
+    rdfs:label "Downstream Engineering Department" .
+
+### 2. TBOX: RELATIONSHIPS & BOUNDARIES (The Properties)
+# --- Object Properties (Entity to Entity links) ---
+ai:processedBy rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range ai:TriageAgent .
+
+ticket:hasAnalysis rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range ticket:AgentAnalysis .
+
+ticket:assignedTo rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range routing:EscalationTarget .
+
+# --- Datatype Properties (Entity to Literal Value links) ---
+ai:agentId rdf:type rdf:Property ;
+    rdfs:domain ai:TriageAgent ;
+    rdfs:range xsd:string .
+
+ticket:ticketId rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range xsd:string .
+
+ticket:rawSummary rdf:type rdf:Property ;
+    rdfs:domain ticket:IncidentTicket ;
+    rdfs:range xsd:string .
+
+ticket:sentiment rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:string .
+
+ticket:urgencyScore rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:integer .
+
+ticket:confidenceScore rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:float .
+
+ticket:priorityHandling rdf:type rdf:Property ;
+    rdfs:domain ticket:AgentAnalysis ;
+    rdfs:range xsd:boolean .
+
+### 3. ABOX: LIVE INSTANCE DATA (Synchronized from valid-ticket.json)
+# Agent Instance Definition
+inst:Agent_1024 rdf:type ai:TriageAgent ;
+    ai:agentId "AGT-1024"^^xsd:string .
+
+# Incident Ticket State Mapping
+inst:Ticket_INC-2026-8841 rdf:type ticket:IncidentTicket ;
+    ticket:ticketId "INC-2026-8841"^^xsd:string ;
+    ai:processedBy inst:Agent_1024 ;
+    ticket:rawSummary "Database connection pool is totally exhausted. Core production systems are down..."^^xsd:string ;
+    ticket:hasAnalysis inst:Analysis_INC-2026-8841 ;
+    ticket:assignedTo inst:Dept_Devops , inst:Dept_Security .
+
+# Cognitive Analysis Layer Mapping (Reflecting Schema Guardrail Outcomes)
+inst:Analysis_INC-2026-8841 rdf:type ticket:AgentAnalysis ;
+    ticket:sentiment "frustrated"^^xsd:string ;
+    ticket:urgencyScore "5"^^xsd:integer ;
+    ticket:confidenceScore "0.98"^^xsd:float ;
+    ticket:priorityHandling "true"^^xsd:boolean .
+
+# Escalation Infrastructure Target Definitions
+inst:Dept_Devops rdf:type routing:EscalationTarget ;
+    rdfs:label "DevOps Infrastructure Team" .
+
+inst:Dept_Security rdf:type routing:EscalationTarget ;
+    rdfs:label "Information Security Incident Response" .
+```
 ---
