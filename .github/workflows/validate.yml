@@ -1,0 +1,48 @@
+name: AI Agent Triage Validation CI
+
+on:
+  push:
+    paths:
+      - 'ai-agent-triage-schema.json'
+      - 'valid-ticket.json'
+      - 'invalid-ticket.json'
+  pull_request:
+    paths:
+      - 'ai-agent-triage-schema.json'
+      - 'valid-ticket.json'
+      - 'invalid-ticket.json'
+
+jobs:
+  ai-triage-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository Code
+        uses: actions/checkout@v6
+
+      - name: 🟢 Set up Node.js Runtime
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: 🛠️ Install AJV Validator CLI
+        run: npm install -g ajv-cli
+
+      - name: 🛡️ Assert Valid Ticket State PASSES
+        run: |
+          echo "Validating 'valid-ticket.json' against the AI Agent Triage schema..."
+          ajv validate -s ai-agent-triage-schema.json -d valid-ticket.json
+
+      - name: 🧪 Assert Invalid Ticket State FAILS (Negative Testing)
+        run: |
+          echo "Validating 'invalid-ticket.json' to ensure hallucination guardrails work..."
+          
+          # We expect 'ajv validate' to FAIL (exit code > 0) on the bad file.
+          # If it passes (exit code 0), our schema isn't strict enough and our CI pipeline must fail.
+          
+          if ajv validate -s ai-agent-triage-schema.json -d invalid-ticket.json; then
+            echo "❌ CRITICAL FAILURE: The invalid payload (hallucinated keys) mistakenly PASSED schema validation!"
+            exit 1
+          else
+            echo "✅ SUCCESS: The validation layer blocked the malformed AI output as expected."
+          fi
