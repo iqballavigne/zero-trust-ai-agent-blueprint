@@ -293,3 +293,67 @@ inst:Dept_Security rdf:type routing:EscalationTarget ;
     rdfs:label "Information Security Incident Response" .
 ```
 ---
+
+## ⚙️ CI/CD Automation & Governance
+
+Automated governance is mandatory when integrating non-deterministic AI outputs into core corporate environments. This repository implements an automated validation gateway using GitHub Actions. Operating inside a high-performance **Node.js 24 runtime environment**, the pipeline acts as an immutable quality gate, ensuring that any structural modifications to the schema model or test controls are automatically validated before being integrated into production.
+
+### 🧠 Architectural Pipeline Mechanics
+
+The automation framework executes three foundational engineering design patterns to protect data integrity:
+
+* **High-Performance Path-Filtering:** The automation runner executes exclusively when targeted modifications are committed to the core parsing rulebook (`ai-agent-triage-schema.json`) or the control payloads (`valid-ticket.json`, `invalid-ticket.json`). This optimization eliminates unnecessary compute consumption during simple updates to documentation or semantic graphs.
+* **Positive Boundary Affirmation:** Using the strict-mode **AJV CLI compiler**, the workflow validates the positive control file (`valid-ticket.json`). This proves that compliant agent outputs—containing regularized IDs, safe sentiment fields, and appropriate escalation vectors—successfully satisfy every schema layer rule.
+* **Negative Inversion Testing Gate:** To guarantee the schema remains strict enough to stop prompt leakages or model drifts, the pipeline intentionally passes the compromised payload (`invalid-ticket.json`) through the validator. A custom bash logic loop monitors the compilation; if the malformed text accidentally passes the boundary rules, the runner actively overrides the success signal, registers a critical security error, and triggers a hard system halt (`exit 1`).
+
+### 📄 Automation Pipeline Configuration (`validate.yml`)
+```
+name: AI Agent Triage Validation CI
+
+on:
+  push:
+    paths:
+      - 'ai-agent-triage-schema.json'
+      - 'valid-ticket.json'
+      - 'invalid-ticket.json'
+  pull_request:
+    paths:
+      - 'ai-agent-triage-schema.json'
+      - 'valid-ticket.json'
+      - 'invalid-ticket.json'
+
+jobs:
+  ai-triage-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository Code
+        uses: actions/checkout@v6
+
+      - name: 🟢 Set up Node.js Runtime
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: 🛠️ Install AJV Validator CLI
+        run: npm install -g ajv-cli
+
+      - name: 🛡️ Assert Valid Ticket State PASSES
+        run: |
+          echo "Validating 'valid-ticket.json' against the AI Agent Triage schema..."
+          ajv validate -s ai-agent-triage-schema.json -d valid-ticket.json
+
+      - name: 🧪 Assert Invalid Ticket State FAILS (Negative Testing)
+        run: |
+          echo "Validating 'invalid-ticket.json' to ensure hallucination guardrails work..."
+          
+          # We expect 'ajv validate' to FAIL (exit code > 0) on the bad file.
+          # If it passes (exit code 0), our schema isn't strict enough and our CI pipeline must fail.
+          
+          if ajv validate -s ai-agent-triage-schema.json -d invalid-ticket.json; then
+            echo "❌ CRITICAL FAILURE: The invalid payload (hallucinated keys) mistakenly PASSED schema validation!"
+            exit 1
+          else
+            echo "✅ SUCCESS: The validation layer blocked the malformed AI output as expected."
+          fi
+```
