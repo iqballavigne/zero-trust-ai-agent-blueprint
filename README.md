@@ -77,7 +77,7 @@ The triage gateway enforces deterministic data constraints by evaluating the age
         },
         "timestamp": {
           "type": "string",
-          "format": "date-time"
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
         },
         "schema_version": {
           "type": "string",
@@ -164,7 +164,7 @@ The triage gateway enforces deterministic data constraints by evaluating the age
 
 ### Key Structural Mechanics
 
-* **Strict Temporal & Indexing Patterns:** Validates the `ticket_id` property against an enterprise-wide regular expression layout (`^INC-2026-[0-9]{4}$`). This ensures rigid chronological sorting and cryptographic indexing constraints are maintained at the database edge.
+* **Strict Temporal & Indexing Patterns:** Validates the `timestamp` property against a rigid ISO regular expression pattern (`^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$`) to enforce strict temporal formatting at the database edge without relying on external environment plugins.
 * **Conditional Escalation Safeguards (Rule A):** Instantly hooks into the agent's calculations. If the model sets the `urgency_score` integer to `5`, the schema overrides optional constraints and mandates an `escalation_target` array to prevent high-severity incidents from stalling without engineering ownership.
 * **SLA Protection Bounds (Rule B):** Evaluates the parsed data stream for volatile inputs. If the model identifies customer sentiment as `"frustrated"`, the validation engine forces the `priority_handling` flag to resolve to a literal `true` boolean, eliminating human or model oversight on high-visibility complaints.
 * **Zero-Trust Surface Area Reduction:** Enforces an absolute `"additionalProperties": false` restriction at every structural tier. This immediately quarantines and rejects payloads containing unmapped keys, serving as a primary defense against LLM prompt leakages and structural hallucinations.
